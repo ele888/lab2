@@ -56,8 +56,8 @@ maxitr = 300; itr = 0; data = dataTrain;
 
 %%% NEED TO FIX MAIN LOOP SO IT ITERATES WRT TO K %%%%
     while itr < maxitr
-    k = k + 1;
     itr = itr + 1;
+    k = itr - 1;
     [neg_locus,set] = ak(data,a);
     gradient = GJp(neg_locus,set);
     perceptron = a_kp1(a,eta,gradient);
