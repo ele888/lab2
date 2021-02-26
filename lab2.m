@@ -23,7 +23,7 @@ dataSetB = trainingSet(51:100,2:3);
 %dataSetC Iris Virginia with features x2 and x3
 dataSetC = trainingSet(101:150,2:3);
 %% New Data set from A,B
-newDataSet = [dataSetA;dataSetB];
+newDataSet = [dataSetA;dataSetB];           %% change data set accordingly
 %% Prepare Data: Augmentation & Normalization (for feature vector)
 % Augmentation 
 nRows = size(newDataSet, 1); 
@@ -50,42 +50,46 @@ eta = 0.01;             % learning rate
 theta = 0; 
 a = [0 0 1]';           %augmented weight vector
 k = 0; 
-maxitr = 300; itr = 0; data = dataTrain;
+
+maxitr = 300; data = dataTrain;             %change data accordingly
 %% Gradient Descent Algorithm 
 % with initialized criteria: a, eta, theta, k, maxitr
 
 %%% NEED TO FIX MAIN LOOP SO IT ITERATES WRT TO K %%%%
-    while itr < maxitr
-    itr = itr + 1;
-    k = itr - 1;
-    [neg_locus,set] = ak(data,a);
-    gradient = GJp(neg_locus,set);
-    perceptron = a_kp1(a,eta,gradient);
-    cdn = condition(eta,gradient);
+    while k < maxitr
+        for k = k:maxitr
+            [neg_locus,set,miss_y,k] = new_a(data,a,k);
+            [gradient,k] = GJp(neg_locus,set,k);
+            [a,k] = perceptron(a,eta,gradient,k);
+            [cdn,k] = condition(eta,gradient,k);         
+        end
+        
         if cdn < theta ; break; end
+                
     end
     
-fprintf('Number of iterations: %d \n',itr)
-fprintf('Final value of k: %d \n', k)
-disp(['Final value of augmented weight vector, a: [' num2str(a(:).') ']']) ;
-
+    k = numel(k);
+    fprintf('Final Iteration that breaks, k: %d\n',k) ;
+    disp(['Final value of augmented weight vector, a: [' num2str(a(:).') ']']) ;
 %% create feature plot with descision boundary
 % decision boundary threshold
 % plot
 
 %% Iterations for a
 % a wrt to k iterations
-function [neg_locus,set] = ak(data,a)
+function [neg_locus,set,miss_y,k] = new_a(data,a,k)
+    k = k;
     set = data(1:end-1,:);
     a = a';
-    miss_y= a*set ;          %use to find negative values = misclassifed values
-    index = miss_y < 0;     % create logical index
+    miss_y= a*set ;                     %use to find negative values = misclassifed values
+    index = miss_y < 0;                  % create logical index
     neg_locus = find(miss_y(index));     % obtain location of negative values
 end
 %% Gradient Function
 % Gradient Jp
-function gradient = GJp(neg_locus,set)
-     NegSet = set(:,neg_locus);
+function [gradient,k] = GJp(neg_locus,set,k)
+    k = k;
+    NegSet = set(:,neg_locus);
     S = sum(NegSet,2);
     gradient = S*(-1);
 end
@@ -93,11 +97,13 @@ end
 %% Perceptron Criterion Function -error here
 % Jp(a) = sum of all misclassified (-a.T*y)
 % a (k+1) --> a_kp1
-function perceptron = a_kp1(a,eta,gradient)
-    perceptron = a - eta*gradient;
+function [a,k] = perceptron(a,eta,gradient,k)
+    k = k;
+    a = a - eta*gradient;
 end
 %% condition to stop iterations
 %n*gradient < theta
-function cdn = condition(eta,gradient)
+function [cdn,k] = condition(eta,gradient,k)
     cdn = eta*gradient;
+    k = k;
 end
